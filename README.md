@@ -23,10 +23,10 @@ Flow) load it into a star schema in PostgreSQL.
 | Pipeline | Pattern | Sink |
 |---|---|---|
 | `pl_ingest_fred_jolts` | Web Activity (Key Vault) -> ForEach 5 series -> Copy Activity | Blob: `raw-fred/jolts/` |
-| `pls_ingest_bls_ces` | Web Activity (Key Vault) -> Web Activity (POST, 28 series) -> Web Activity (PUT to Blob) | Blob: `raw-bls-ces/ces/` |
+| `pl_ingest_bls_ces` | Web Activity (Key Vault) -> Web Activity (POST, 28 series) -> Web Activity (PUT to Blob) | Blob: `raw-bls-ces/ces/` |
 | *(OES ingestion)* | Manual download of BLS OES Excel workbooks | Blob: `raw-bls-oes/` |
 | `pl_transform_fred_jolts` | ForEach 5 series -> Execute Data Flow `df_jolts_to_pg` | `fact_labor_market` |
-| `pl_transform_blc_ces` | Execute Data Flow `df_ces_to_pg` | `fact_labor_market` |
+| `pl_transform_bls_ces` | Execute Data Flow `df_ces_to_pg` | `fact_labor_market` |
 | `pl_transform_bls_oes` | ForEach 10 years -> Execute Data Flow `df_oes_to_pg` | `fact_occupation_wages` |
 
 ## Data model
@@ -69,6 +69,10 @@ Full detail in the project report, briefly:
 
 - ADF linked service files reference Azure Key Vault for all credentials
   (`AzureKeyVaultSecret`) - no secrets are stored in this repository.
-- This is a portfolio-scale project (PostgreSQL Flexible Server, Burstable
-  B1ms tier); see the report's Limitations section for what would change for
-  a production deployment.
+
+  ## Known limitations
+
+- **OES ingestion is manual.** FRED and CES are pulled by Azure Data Factory pipelines, but I download the annual BLS OES Excel workbooks by hand and place them in the `raw-bls-oes/` Blob folder as the API for OES was not functional when the project was built.
+- **Portfolio scale.** The database runs on a Burstable B1ms PostgreSQL Flexible Server. That is plenty for these datasets, but it isn't sized for production load.
+
+The project report (`Labor_Market_Analytics_Project_Report.pdf`) covers the validation approach and the production considerations in more detail.

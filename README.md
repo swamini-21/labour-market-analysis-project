@@ -56,12 +56,12 @@ Three Tableau dashboards, each built on its own extract:
 
 ## Key Findings
 
-1. **The labor market has cooled from its 2022 peak.** Job openings peaked at roughly 12M in early 2022, about double the pre-COVID level, and have since fallen to roughly 6.5M. The gap between openings and hires has largely closed, which points to a much less tight labor market than at the post-COVID peak.
+1. **The labor market has cooled from its 2022 peak.** Job openings peaked at about 12.3M in March 2022, roughly 70% above the pre-COVID level of about 7M, and have since fallen to about 6.5M.
 
 2. **Pay and hours vary sharply by sector.** In 2025, Information had the highest average hourly earnings ($52.59), about 70% above Trade, Transportation & Utilities ($30.97). Mining & Logging worked the longest weeks (about 45 hours), while Education & Health Services worked the shortest (about 32).
 
 3. **Lower-paid occupations saw the fastest wage growth from 2016 to 2025.** Food Preparation (+55.8%) and Personal Care (+54.9%) grew fastest, while Management (+23.1%) grew slowest. Management still averaged the highest pay (about $128.8K across 2016-2025), so the gap is narrowing in percentage terms but remains large in absolute dollars.
-4. **COVID-19 caused a sharp but brief shock.** In April 2020, total separations spiked to roughly 16M, about 3x the pre-pandemic level of around 5-6M, driven by a layoff surge to roughly 13M. Quits dropped to under 2M, and hires fell to about 4M before rebounding to around 8M within months. Sector employment shows the same pattern, with a sharp one-month drop in 2020 and recovery to pre-COVID levels by 2022 in most sectors.
+4. **COVID-19 caused a sharp but brief shock.** In April 2020, total separations spiked to roughly 16M, about 3x the pre-pandemic level of around 5-6M, driven by a layoff surge to roughly 13M. Quits dropped to about 2M, and hires fell to about 4M before rebounding to around 8M within months. Sector employment shows the same pattern, with a sharp one-month drop in 2020 and recovery to pre-COVID levels by 2022 in most sectors.
 
 ## Notable engineering challenges
 

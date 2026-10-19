@@ -8,7 +8,7 @@ star schema on PostgreSQL, visualized through three Tableau dashboards.
 &middot; PostgreSQL Flexible Server &middot; Tableau Desktop
 ## Architecture
 
-![Labor market pipeline architecture](docs/architecture.png)
+![Labor market pipeline architecture](docs/architecture-diagram.png)
 
 For the full write-up - motivation, architecture, challenges and how they were
 resolved, data validation approach, limitations, and future enhancements - see

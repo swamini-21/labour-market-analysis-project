@@ -46,11 +46,22 @@ and support files.
 
 ## Dashboards
 
-Three Tableau dashboards, each built on its own extract:
+Three Tableau dashboards, each built on its own extract: 
 
 - **Labor Market Health** - job openings/hires/separations, quit vs. layoff rate, labor market tightness
 - **Sector Employment & Wages** - employment by sector, hourly earnings, weekly hours
 - **Occupation Wage Analysis** - top-paying occupations, employment vs. wage, wage growth 2016-2025
+
+**[View the interactive dashboards on Tableau Public]((https://public.tableau.com/views/US_Labour_Market_Analysis/SectorEmploymentWages))**
+
+## Key Findings
+
+1. **The labor market has cooled from its 2022 peak.** Job openings peaked at roughly 12M in early 2022, about double the pre-COVID level, and have since fallen to roughly 6.5M. The gap between openings and hires has largely closed, which points to a much less tight labor market than at the post-COVID peak.
+
+2. **Pay and hours vary sharply by sector.** In 2025, Information had the highest average hourly earnings ($52.59), about 70% above Trade, Transportation & Utilities ($30.97). Mining & Logging worked the longest weeks (about 45 hours), while Education & Health Services worked the shortest (about 32).
+
+3. **Lower-paid occupations saw the fastest wage growth from 2016 to 2025.** Food Preparation (+55.8%) and Personal Care (+54.9%) grew fastest, while Management (+23.1%) grew slowest. Management still averaged the highest pay (about $128.8K across 2016-2025), so the gap is narrowing in percentage terms but remains large in absolute dollars.
+4. **COVID-19 caused a sharp but brief shock.** In April 2020, total separations spiked to roughly 16M, about 3x the pre-pandemic level of around 5-6M, driven by a layoff surge to roughly 13M. Quits dropped to under 2M, and hires fell to about 4M before rebounding to around 8M within months. Sector employment shows the same pattern, with a sharp one-month drop in 2020 and recovery to pre-COVID levels by 2022 in most sectors.
 
 ## Notable engineering challenges
 

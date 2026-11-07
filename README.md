@@ -14,7 +14,7 @@ For the full write-up - motivation, architecture, challenges and how they were
 resolved, data validation approach, limitations, and future enhancements - see
 the project report included in this repository.
 
-## Architecture
+## How it works
 
 Two independent stages: **ingestion** pipelines land raw source data in Blob
 Storage, and **transformation** pipelines (each wrapping a single Mapping Data
@@ -52,7 +52,7 @@ Three Tableau dashboards, each built on its own extract:
 - **Sector Employment & Wages** - employment by sector, hourly earnings, weekly hours
 - **Occupation Wage Analysis** - top-paying occupations, employment vs. wage, wage growth 2016-2025
 
-**[View the interactive dashboards on Tableau Public]((https://public.tableau.com/views/US_Labour_Market_Analysis/SectorEmploymentWages))**
+**[View the interactive dashboards on Tableau Public](https://public.tableau.com/views/US_Labour_Market_Analysis/SectorEmploymentWages)**
 
 ## Key Findings
 

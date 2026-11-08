@@ -10,3 +10,7 @@ Thumbs.db
 
 # ADF export archives
 *.zip
+
+# ADF support-file metadata
+diagnostic.json
+info.txt

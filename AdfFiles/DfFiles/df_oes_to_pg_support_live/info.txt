@@ -1,7 +1,0 @@
-selected resource name:		df_oes_to_pg
-selected resource type:		dataflow
-factory name:			adf-labour-analytics
-factory location:		eastus
-subscription id:		57951594-5c17-4d87-ad3a-e48e57a6ff66
-data flow session id:		2424039f-3e1c-4d01-91ee-46c30920bc5d
-time of download (UTC):		Wed, 29 Jul 2026 19:11:19 GMT

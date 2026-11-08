@@ -76,14 +76,18 @@ Full detail in the project report, briefly:
   soft-delete interference, and a column-name collision between fact and
   dimension metadata - all documented with root cause and resolution.
 
-## Notes
+## Pipeline definitions
 
-- ADF linked service files reference Azure Key Vault for all credentials
-  (`AzureKeyVaultSecret`) - no secrets are stored in this repository.
+The exported ADF resources are in [`AdfFiles/`](AdfFiles/):
 
-  ## Known limitations
+- **`Pipeline Files/`:** ingestion and transformation pipelines (FRED JOLTS, BLS CES, BLS OES), with their datasets and linked services
+- **`DfFiles/`:** the Mapping Data Flows that load each source into the PostgreSQL star schema
 
-- **OES ingestion is manual.** FRED and CES are pulled by Azure Data Factory pipelines, but I download the annual BLS OES Excel workbooks by hand and place them in the `raw-bls-oes/` Blob folder as the API for OES was not functional when the project was built.
-- **Portfolio scale.** The database runs on a Burstable B1ms PostgreSQL Flexible Server. That is plenty for these datasets, but it isn't sized for production load.
+All linked services pull credentials from **Azure Key Vault** (`AzureKeyVaultSecret`), so no secrets are stored in this repository.
 
-The project report (`Labor_Market_Analytics_Project_Report.pdf`) covers the validation approach and the production considerations in more detail.
+## Known limitations
+
+- **OES ingestion is manual.** FRED and CES are pulled by Azure Data Factory pipelines, but the annual BLS OES Excel workbooks are downloaded by hand and placed in the `raw-bls-oes/` Blob folder, because the OES API wasn't working when the project was built.
+- **Portfolio scale.** The database runs on a Burstable B1ms PostgreSQL Flexible Server, which is plenty for these datasets but not sized for production load.
+
+The [project report](docs/Project_Report.pdf) covers the validation approach and production considerations in more detail.

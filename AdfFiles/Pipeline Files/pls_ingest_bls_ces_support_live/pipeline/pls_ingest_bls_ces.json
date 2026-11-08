@@ -1,0 +1,117 @@
+{
+    "name": "pls_ingest_bls_ces",
+    "properties": {
+        "activities": [
+            {
+                "name": "act_get_bls_api_key",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "method": "GET",
+                    "url": "https://kv-labour-analytics.vault.azure.net/secrets/bls-api-key/?api-version=7.0",
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": "https://vault.azure.net"
+                    }
+                }
+            },
+            {
+                "name": "act_call_bls_ces",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "act_get_bls_api_key",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "url": "https://api.bls.gov/publicAPI/v2/timeseries/data/",
+                    "body": {
+                        "value": "@concat('{',\n'\"seriesid\":[',\n'\"CES0000000001\",\"CES0500000002\",\"CES0500000003\",',\n'\"CES1000000001\",\"CES1000000002\",\"CES1000000003\",',\n'\"CES2000000001\",\"CES2000000002\",\"CES2000000003\",',\n'\"CES3000000001\",\"CES3000000002\",\"CES3000000003\",',\n'\"CES4000000001\",\"CES4000000002\",\"CES4000000003\",',\n'\"CES5000000001\",\"CES5000000002\",\"CES5000000003\",',\n'\"CES6000000001\",\"CES6000000002\",\"CES6000000003\",',\n'\"CES7000000001\",\"CES7000000002\",\"CES7000000003\",',\n'\"CES8000000001\",\"CES8000000002\",\"CES8000000003\",',\n'\"CES9000000001\",\"CES7000000002\",\"CES7000000003\"',\n'],',\n'\"startyear\":\"', pipeline().parameters.start_year, '\",',\n'\"endyear\":\"', pipeline().parameters.end_year, '\",',\n'\"calculations\":true,',\n'\"annualaverage\":true,',\n'\"registrationkey\":\"', activity('act_get_bls_api_key').output.value, '\"',\n'}')",
+                        "type": "Expression"
+                    }
+                }
+            },
+            {
+                "name": "act-save-bls-to-blob",
+                "type": "WebActivity",
+                "dependsOn": [
+                    {
+                        "activity": "act_call_bls_ces",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "method": "PUT",
+                    "headers": {
+                        "x-ms-blob-type": "BlockBlob",
+                        "Content-Type": "application/json",
+                        "x-ms-version": "2020-04-08"
+                    },
+                    "url": {
+                        "value": "@concat('https://stlabouranalytics.blob.core.windows.net/raw-bles-ces/ces/years=', pipeline().parameters.start_year, '-', pipeline().parameters.end_year, '/CES_all_sectors_', pipeline().parameters.start_year, '_', pipeline().parameters.end_year, '.json')",
+                        "type": "Expression"
+                    },
+                    "body": {
+                        "value": "@string(activity('act_call_bls_ces').output)",
+                        "type": "Expression"
+                    },
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": "https://storage.azure.com/"
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "start_year": {
+                "type": "string",
+                "defaultValue": "2016"
+            },
+            "end_year": {
+                "type": "string",
+                "defaultValue": "2025"
+            }
+        },
+        "variables": {
+            "blsApiKey": {
+                "type": "String"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-07-23T20:59:46Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

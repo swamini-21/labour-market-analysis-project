@@ -1,0 +1,119 @@
+{
+    "name": "ds_blob_oes_ssource",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_BlobStorage_Raw",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "reference_year": {
+                "type": "string",
+                "defaultValue": "2025"
+            }
+        },
+        "annotations": [],
+        "type": "Excel",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                    "value": "@concat('national_M', string(dataset().reference_year), '_dl.xlsx')",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@concat('oes/year=', dataset().reference_year)",
+                    "type": "Expression"
+                },
+                "container": "raw-bls-oes"
+            },
+            "sheetIndex": 0,
+            "firstRowAsHeader": true
+        },
+        "schema": [
+            {
+                "name": "OCC_CODE",
+                "type": "String"
+            },
+            {
+                "name": "OCC_TITLE",
+                "type": "String"
+            },
+            {
+                "name": "OCC_GROUP",
+                "type": "String"
+            },
+            {
+                "name": "TOT_EMP",
+                "type": "String"
+            },
+            {
+                "name": "EMP_PRSE",
+                "type": "String"
+            },
+            {
+                "name": "H_MEAN",
+                "type": "String"
+            },
+            {
+                "name": "A_MEAN",
+                "type": "String"
+            },
+            {
+                "name": "MEAN_PRSE",
+                "type": "String"
+            },
+            {
+                "name": "H_PCT10",
+                "type": "String"
+            },
+            {
+                "name": "H_PCT25",
+                "type": "String"
+            },
+            {
+                "name": "H_MEDIAN",
+                "type": "String"
+            },
+            {
+                "name": "H_PCT75",
+                "type": "String"
+            },
+            {
+                "name": "H_PCT90",
+                "type": "String"
+            },
+            {
+                "name": "A_PCT10",
+                "type": "String"
+            },
+            {
+                "name": "A_PCT25",
+                "type": "String"
+            },
+            {
+                "name": "A_MEDIAN",
+                "type": "String"
+            },
+            {
+                "name": "A_PCT75",
+                "type": "String"
+            },
+            {
+                "name": "A_PCT90",
+                "type": "String"
+            },
+            {
+                "name": "ANNUAL",
+                "type": "String"
+            },
+            {
+                "name": "HOURLY",
+                "type": "String"
+            },
+            {
+                "name": "year"
+            }
+        ]
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

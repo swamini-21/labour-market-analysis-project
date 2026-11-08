@@ -1,0 +1,12 @@
+{
+    "name": "LS_BlobStorage_Raw",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobStorage",
+        "typeProperties": {
+            "serviceEndpoint": "https://stlabouranalytics.blob.core.windows.net/",
+            "accountKind": "StorageV2"
+        }
+    }
+}

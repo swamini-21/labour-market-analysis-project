@@ -1,0 +1,104 @@
+{
+    "name": "ds_blob_jolts_source",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_BlobStorage_Raw",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "series_id": {
+                "type": "string"
+            },
+            "load_year": {
+                "type": "string"
+            },
+            "load_month": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                    "value": "@concat(dataset().series_id, '_', dataset().load_year, dataset().load_month, '.json')",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@concat('jolts/year=', dataset().load_year, '/month=', dataset().load_month)",
+                    "type": "Expression"
+                },
+                "container": "raw-fred"
+            }
+        },
+        "schema": {
+            "type": "object",
+            "properties": {
+                "realtime_start": {
+                    "type": "string"
+                },
+                "realtime_end": {
+                    "type": "string"
+                },
+                "observation_start": {
+                    "type": "string"
+                },
+                "observation_end": {
+                    "type": "string"
+                },
+                "units": {
+                    "type": "string"
+                },
+                "output_type": {
+                    "type": "integer"
+                },
+                "file_type": {
+                    "type": "string"
+                },
+                "order_by": {
+                    "type": "string"
+                },
+                "sort_order": {
+                    "type": "string"
+                },
+                "count": {
+                    "type": "integer"
+                },
+                "offset": {
+                    "type": "integer"
+                },
+                "limit": {
+                    "type": "integer"
+                },
+                "observations": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "realtime_start": {
+                                "type": "string"
+                            },
+                            "realtime_end": {
+                                "type": "string"
+                            },
+                            "date": {
+                                "type": "string"
+                            },
+                            "value": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                },
+                "year": {
+                    "type": "string"
+                },
+                "month": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

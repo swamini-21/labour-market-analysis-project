@@ -1,0 +1,232 @@
+{
+    "name": "ds_blob_ces_source",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_BlobStorage_Raw",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "start_year": {
+                "type": "string",
+                "defaultValue": "2015"
+            },
+            "end_year": {
+                "type": "string",
+                "defaultValue": "2025"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                    "value": "@concat('CES_all_sectors_', dataset().start_year, '_', dataset().end_year, '.json')",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@concat('ces/years=', dataset().start_year, '-', dataset().end_year)",
+                    "type": "Expression"
+                },
+                "container": "raw-bles-ces"
+            }
+        },
+        "schema": {
+            "type": "object",
+            "properties": {
+                "status": {
+                    "type": "string"
+                },
+                "responseTime": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "array"
+                },
+                "Results": {
+                    "type": "object",
+                    "properties": {
+                        "series": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "seriesID": {
+                                        "type": "string"
+                                    },
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "year": {
+                                                    "type": "string"
+                                                },
+                                                "period": {
+                                                    "type": "string"
+                                                },
+                                                "periodName": {
+                                                    "type": "string"
+                                                },
+                                                "value": {
+                                                    "type": "string"
+                                                },
+                                                "footnotes": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "object"
+                                                    }
+                                                },
+                                                "calculations": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "net_changes": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "1": {
+                                                                    "type": "string"
+                                                                },
+                                                                "3": {
+                                                                    "type": "string"
+                                                                },
+                                                                "6": {
+                                                                    "type": "string"
+                                                                },
+                                                                "12": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        },
+                                                        "pct_changes": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "1": {
+                                                                    "type": "string"
+                                                                },
+                                                                "3": {
+                                                                    "type": "string"
+                                                                },
+                                                                "6": {
+                                                                    "type": "string"
+                                                                },
+                                                                "12": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "ADFHttpStatusCodeInResponse": {
+                    "type": "string"
+                },
+                "ADFWebActivityResponseHeaders": {
+                    "type": "object",
+                    "properties": {
+                        "X-Content-Type-Options": {
+                            "type": "string"
+                        },
+                        "Vary": {
+                            "type": "string"
+                        },
+                        "APC-Route-id": {
+                            "type": "string"
+                        },
+                        "Access-Control-Allow-Headers": {
+                            "type": "string"
+                        },
+                        "Access-Control-Allow-Origin": {
+                            "type": "string"
+                        },
+                        "Route-Id": {
+                            "type": "string"
+                        },
+                        "Keep-Alive": {
+                            "type": "string"
+                        },
+                        "Connection": {
+                            "type": "string"
+                        },
+                        "Transfer-Encoding": {
+                            "type": "string"
+                        },
+                        "Pool-Info": {
+                            "type": "string"
+                        },
+                        "X-Frame-Options": {
+                            "type": "string"
+                        },
+                        "Content-Security-Policy": {
+                            "type": "string"
+                        },
+                        "Cross-Origin-Opener-Policy": {
+                            "type": "string"
+                        },
+                        "Strict-Transport-Security": {
+                            "type": "string"
+                        },
+                        "Date": {
+                            "type": "string"
+                        },
+                        "Set-Cookie": {
+                            "type": "string"
+                        },
+                        "Content-Type": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "effectiveIntegrationRuntime": {
+                    "type": "string"
+                },
+                "executionDuration": {
+                    "type": "integer"
+                },
+                "durationInQueue": {
+                    "type": "object",
+                    "properties": {
+                        "integrationRuntimeQueue": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "billingReference": {
+                    "type": "object",
+                    "properties": {
+                        "activityType": {
+                            "type": "string"
+                        },
+                        "billableDuration": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "meterType": {
+                                        "type": "string"
+                                    },
+                                    "duration": {
+                                        "type": "number"
+                                    },
+                                    "unit": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "years": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

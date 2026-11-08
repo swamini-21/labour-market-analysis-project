@@ -1,0 +1,6 @@
+selected resource name:		pl_transform_blc_ces
+selected resource type:		pipeline
+factory name:			adf-labour-analytics
+factory location:		eastus
+subscription id:		57951594-5c17-4d87-ad3a-e48e57a6ff66
+time of download (UTC):		Thu, 30 Jul 2026 18:27:50 GMT

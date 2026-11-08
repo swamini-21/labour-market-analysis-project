@@ -1,0 +1,241 @@
+{
+    "name": "df_ces_to_pg",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_blob_ces_source",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcCes"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_dim_date",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimDate"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_dim_metric",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimMetric"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_dim_sector",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimSector"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_fact_labour_market",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkPostgres"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "dimDateMonthly"
+                },
+                {
+                    "name": "flattenSeries"
+                },
+                {
+                    "name": "flattenData"
+                },
+                {
+                    "name": "cleanedCes"
+                },
+                {
+                    "name": "filterValidDates"
+                },
+                {
+                    "name": "LookupDate"
+                },
+                {
+                    "name": "filterValidDateKeys"
+                },
+                {
+                    "name": "lookupMetric"
+                },
+                {
+                    "name": "lookupSector"
+                },
+                {
+                    "name": "finalSelect"
+                },
+                {
+                    "name": "alterRowUpsert"
+                },
+                {
+                    "name": "filterValidSeries"
+                },
+                {
+                    "name": "addFinalMetadata"
+                },
+                {
+                    "name": "dimDataStr"
+                },
+                {
+                    "name": "addDateString"
+                }
+            ],
+            "scriptLines": [
+                "parameters{",
+                "     start_year as string ('2015'),",
+                "     end_year as string ('2025')",
+                "}",
+                "source(output(",
+                "          status as string,",
+                "          responseTime as integer,",
+                "          message as string[],",
+                "          Results as (series as (seriesID as string, data as (year as string, period as string, periodName as string, value as string, footnotes as ({} as string)[], calculations as (net_changes as ({1} as string, {3} as string, {6} as string, {12} as string), pct_changes as ({1} as string, {3} as string, {6} as string, {12} as string)))[])[]),",
+                "          ADFHttpStatusCodeInResponse as string,",
+                "          ADFWebActivityResponseHeaders as ({X-Content-Type-Options} as string, Vary as string, {APC-Route-id} as string, {Access-Control-Allow-Headers} as string, {Access-Control-Allow-Origin} as string, {Route-Id} as string, {Keep-Alive} as string, Connection as string, {Transfer-Encoding} as string, {Pool-Info} as string, {X-Frame-Options} as string, {Content-Security-Policy} as string, {Cross-Origin-Opener-Policy} as string, {Strict-Transport-Security} as string, Date as string, {Set-Cookie} as string, {Content-Type} as string),",
+                "          effectiveIntegrationRuntime as string,",
+                "          executionDuration as integer,",
+                "          durationInQueue as (integrationRuntimeQueue as integer),",
+                "          billingReference as (activityType as string, billableDuration as (meterType as string, duration as double, unit as string)[]),",
+                "          years as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     ignoreNoFilesFound: false,",
+                "     documentForm: 'documentPerLine') ~> srcCes",
+                "source(output(",
+                "          date_key as integer,",
+                "          full_date as date,",
+                "          year as short,",
+                "          month as short,",
+                "          month_name as string,",
+                "          quarter as short,",
+                "          is_annual as boolean",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimDate",
+                "source(output(",
+                "          metric_key as integer,",
+                "          metric_code as string,",
+                "          metric_name as string,",
+                "          metric_category as string,",
+                "          unit_of_measure as string,",
+                "          source as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimMetric",
+                "source(output(",
+                "          sector_key as integer,",
+                "          sector_code as string,",
+                "          sector_name as string,",
+                "          supersector_code as string,",
+                "          supersector_name as string,",
+                "          is_total as boolean",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimSector",
+                "srcDimDate filter(is_annual == false()) ~> dimDateMonthly",
+                "srcCes foldDown(unroll(Results.series),",
+                "     mapColumn(",
+                "          seriesId = Results.series.seriesID,",
+                "          data = Results.series.data",
+                "     ),",
+                "     skipDuplicateMapInputs: false,",
+                "     skipDuplicateMapOutputs: false) ~> flattenSeries",
+                "flattenSeries foldDown(unroll(data),",
+                "     mapColumn(",
+                "          seriesId,",
+                "          data_year = data.year,",
+                "          data_period = data.period,",
+                "          data_value = data.value",
+                "     ),",
+                "     skipDuplicateMapInputs: false,",
+                "     skipDuplicateMapOutputs: false) ~> flattenData",
+                "filterValidSeries derive(obs_date = toDate(concat(data_year, '-', substring(data_period, 2, 2), '-01'), 'yyyy-MM-dd'),",
+                "          obs_value = toDecimal(iif(data_value == '.', '', data_value), 18, 4),",
+                "          metric_code = iif(endsWith(seriesId, '001'), 'CES_EMP', iif(endsWith(seriesId, '002'), 'CES_AWH', 'CES_AHE')),",
+                "          sector_code = iif(startsWith(seriesId, 'CES05') || startsWith(seriesId, 'CES00'), 'CES0000000001', \r",
+                "iif(startsWith(seriesId, 'CES10'), 'CES1000000001',\r",
+                "iif(startsWith(seriesId, 'CES20'), 'CES2000000001',\r",
+                "iif(startsWith(seriesId, 'CES30'), 'CES3000000001',\r",
+                "iif(startsWith(seriesId, 'CES40'), 'CES4000000001',\r",
+                "iif(startsWith(seriesId, 'CES50'), 'CES5000000001',\r",
+                "iif(startsWith(seriesId, 'CES60'), 'CES6000000001',\r",
+                "iif(startsWith(seriesId, 'CES70'), 'CES7000000001',\r",
+                "iif(startsWith(seriesId, 'CES80'), 'CES8000000001',\r",
+                "iif(startsWith(seriesId, 'CES90'), 'CES9000000001', ''))))))))))) ~> cleanedCes",
+                "cleanedCes filter(!isNull(obs_date)) ~> filterValidDates",
+                "addDateString, dimDataStr lookup(obs_date_str == full_date_str,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> LookupDate",
+                "LookupDate filter(!isNull(date_key)) ~> filterValidDateKeys",
+                "filterValidDateKeys, srcDimMetric lookup(cleanedCes@metric_code == srcDimMetric@metric_code,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> lookupMetric",
+                "lookupMetric, srcDimSector lookup(cleanedCes@sector_code == srcDimSector@sector_code,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> lookupSector",
+                "lookupSector select(mapColumn(",
+                "          value = obs_value,",
+                "          date_key,",
+                "          metric_key,",
+                "          sector_key",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> finalSelect",
+                "addFinalMetadata alterRow(upsertIf(true())) ~> alterRowUpsert",
+                "flattenData filter(seriesId != 'CES7000000002' && seriesId != 'CES7000000003') ~> filterValidSeries",
+                "finalSelect derive(source = 'BLS_CES',",
+                "          load_timestamp = currentTimestamp()) ~> addFinalMetadata",
+                "dimDateMonthly derive(full_date_str = toString(full_date, 'yyyy-MM-dd')) ~> dimDataStr",
+                "filterValidDates derive(obs_date_str = toString(obs_date, 'yyyy-MM-dd')) ~> addDateString",
+                "alterRowUpsert sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          fact_key as long,",
+                "          date_key as integer,",
+                "          sector_key as integer,",
+                "          metric_key as integer,",
+                "          value as decimal(18,4),",
+                "          pct_change_1m as decimal(8,4),",
+                "          pct_change_12m as decimal(8,4),",
+                "          source as string,",
+                "          load_timestamp as timestamp",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:true,",
+                "     keys:['date_key','sector_key','metric_key'],",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     mapColumn(",
+                "          date_key,",
+                "          sector_key,",
+                "          metric_key,",
+                "          value,",
+                "          source,",
+                "          load_timestamp",
+                "     )) ~> sinkPostgres"
+            ]
+        }
+    }
+}

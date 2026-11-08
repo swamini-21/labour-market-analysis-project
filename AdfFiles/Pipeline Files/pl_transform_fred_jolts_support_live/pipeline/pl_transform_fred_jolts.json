@@ -1,0 +1,83 @@
+{
+    "name": "pl_transform_fred_jolts",
+    "properties": {
+        "activities": [
+            {
+                "name": "act_fe_jolts_transform",
+                "type": "ForEach",
+                "dependsOn": [],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@json('[\"JTSJOL\", \"JTSHIL\", \"JTSTSL\", \"JTSQUL\", \"JTSLDL\"]')",
+                        "type": "Expression"
+                    },
+                    "isSequential": true,
+                    "activities": [
+                        {
+                            "name": "act_exec_df_jolts",
+                            "type": "ExecuteDataFlow",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "dataflow": {
+                                    "referenceName": "df_jolts_to_pg",
+                                    "type": "DataFlowReference",
+                                    "parameters": {
+                                        "series_id": {
+                                            "value": "'@{item()}'",
+                                            "type": "Expression"
+                                        },
+                                        "load_year": "'2026'",
+                                        "load_month": "'06'"
+                                    },
+                                    "datasetParameters": {
+                                        "sourceJolts": {
+                                            "series_id": {
+                                                "value": "@item()",
+                                                "type": "Expression"
+                                            },
+                                            "load_year": {
+                                                "value": "@pipeline().parameters.load_year",
+                                                "type": "Expression"
+                                            },
+                                            "load_month": {
+                                                "value": "@pipeline().parameters.load_month",
+                                                "type": "Expression"
+                                            }
+                                        }
+                                    }
+                                },
+                                "compute": {
+                                    "coreCount": 8,
+                                    "computeType": "General"
+                                },
+                                "traceLevel": "Fine"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "load_year": {
+                "type": "string",
+                "defaultValue": "2026"
+            },
+            "load_month": {
+                "type": "string",
+                "defaultValue": "06"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-07-04T20:15:21Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

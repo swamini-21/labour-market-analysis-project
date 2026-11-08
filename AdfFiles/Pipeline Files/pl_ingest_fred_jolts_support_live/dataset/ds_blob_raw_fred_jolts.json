@@ -1,0 +1,38 @@
+{
+    "name": "ds_blob_raw_fred_jolts",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_BlobStorage_Raw",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "series_id": {
+                "type": "string"
+            },
+            "load_year": {
+                "type": "string"
+            },
+            "load_month": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "AzureBlobStorageLocation",
+                "fileName": {
+                    "value": "@concat(dataset().series_id, '_', dataset().load_year, dataset().load_month, '.json')",
+                    "type": "Expression"
+                },
+                "folderPath": {
+                    "value": "@concat(\n  'jolts/year=', dataset().load_year,\n  '/month=', dataset().load_month\n)",
+                    "type": "Expression"
+                },
+                "container": "raw-fred"
+            }
+        },
+        "schema": {}
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

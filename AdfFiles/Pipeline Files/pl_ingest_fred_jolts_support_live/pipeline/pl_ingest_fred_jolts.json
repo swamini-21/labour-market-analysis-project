@@ -1,0 +1,141 @@
+{
+    "name": "pl_ingest_fred_jolts",
+    "properties": {
+        "activities": [
+            {
+                "name": "act_get_fred_api_key",
+                "type": "WebActivity",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "userProperties": [],
+                "typeProperties": {
+                    "method": "GET",
+                    "url": "https://kv-labour-analytics.vault.azure.net/secrets/fred-api-key/?api-version=7.0",
+                    "authentication": {
+                        "type": "MSI",
+                        "resource": "https://vault.azure.net"
+                    }
+                }
+            },
+            {
+                "name": "act_foreach_jolts_series",
+                "type": "ForEach",
+                "dependsOn": [
+                    {
+                        "activity": "act_get_fred_api_key",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "userProperties": [],
+                "typeProperties": {
+                    "items": {
+                        "value": "@json('[\n  \"JTSJOL\",\n  \"JTSHIL\",\n  \"JTSTSL\",\n  \"JTSQUL\",\n  \"JTSLDL\"\n]')",
+                        "type": "Expression"
+                    },
+                    "activities": [
+                        {
+                            "name": "act_copy_fred_jolts_to_blob",
+                            "type": "Copy",
+                            "dependsOn": [],
+                            "policy": {
+                                "timeout": "0.12:00:00",
+                                "retry": 0,
+                                "retryIntervalInSeconds": 30,
+                                "secureOutput": false,
+                                "secureInput": false
+                            },
+                            "userProperties": [],
+                            "typeProperties": {
+                                "source": {
+                                    "type": "JsonSource",
+                                    "storeSettings": {
+                                        "type": "HttpReadSettings",
+                                        "requestMethod": "GET"
+                                    },
+                                    "formatSettings": {
+                                        "type": "JsonReadSettings"
+                                    }
+                                },
+                                "sink": {
+                                    "type": "JsonSink",
+                                    "storeSettings": {
+                                        "type": "AzureBlobStorageWriteSettings"
+                                    },
+                                    "formatSettings": {
+                                        "type": "JsonWriteSettings"
+                                    }
+                                },
+                                "enableStaging": false
+                            },
+                            "inputs": [
+                                {
+                                    "referenceName": "ds_http_fred_jolts",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "series_id": {
+                                            "value": "@item()",
+                                            "type": "Expression"
+                                        },
+                                        "observation_start": {
+                                            "value": "@pipeline().parameters.observation_start",
+                                            "type": "Expression"
+                                        },
+                                        "api_key": {
+                                            "value": "@activity('act_get_fred_api_key').output.value",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ],
+                            "outputs": [
+                                {
+                                    "referenceName": "ds_blob_raw_fred_jolts",
+                                    "type": "DatasetReference",
+                                    "parameters": {
+                                        "series_id": {
+                                            "value": "@item()",
+                                            "type": "Expression"
+                                        },
+                                        "load_year": {
+                                            "value": "@pipeline().parameters.load_year",
+                                            "type": "Expression"
+                                        },
+                                        "load_month": {
+                                            "value": "@pipeline().parameters.load_month",
+                                            "type": "Expression"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "observation_start": {
+                "type": "string",
+                "defaultValue": "2016-01-01"
+            },
+            "load_year": {
+                "type": "string",
+                "defaultValue": "@formatDateTime(utcNow(), 'yyyy')"
+            },
+            "load_month": {
+                "type": "string",
+                "defaultValue": "@formatDateTime(utcNow(), 'MM')"
+            }
+        },
+        "annotations": [],
+        "lastPublishTime": "2026-06-14T19:16:34Z"
+    },
+    "type": "Microsoft.DataFactory/factories/pipelines"
+}

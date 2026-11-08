@@ -1,0 +1,118 @@
+parameters{
+	series_id as string ('JTSJOL'),
+	load_year as string ('2026'),
+	load_month as string ('06')
+}
+source(output(
+		date_key as integer,
+		full_date as date,
+		year as short,
+		month as short,
+		month_name as string,
+		quarter as short,
+		is_annual as boolean
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	isolationLevel: 'READ_UNCOMMITTED',
+	format: 'table') ~> srcDimDate
+source(output(
+		metric_key as integer,
+		metric_code as string,
+		metric_name as string,
+		metric_category as string,
+		unit_of_measure as string,
+		source as string
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	isolationLevel: 'READ_UNCOMMITTED',
+	format: 'table') ~> srcDimMetric
+source(output(
+		sector_key as integer,
+		sector_code as string,
+		sector_name as string,
+		supersector_code as string,
+		supersector_name as string,
+		is_total as boolean
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	isolationLevel: 'READ_UNCOMMITTED',
+	format: 'table') ~> srcDimSector
+source(output(
+		realtime_start as string,
+		realtime_end as string,
+		observation_start as string,
+		observation_end as string,
+		units as string,
+		output_type as integer,
+		file_type as string,
+		order_by as string,
+		sort_order as string,
+		count as integer,
+		offset as integer,
+		limit as integer,
+		observations as (realtime_start as string, realtime_end as string, date as string, value as string)[],
+		year as string,
+		month as string
+	),
+	allowSchemaDrift: true,
+	validateSchema: false,
+	ignoreNoFilesFound: false,
+	documentForm: 'documentPerLine') ~> sourceJolts
+sourceJolts foldDown(unroll(observations),
+	mapColumn(
+		obs_date = observations.date,
+		obs_value = observations.value
+	),
+	skipDuplicateMapInputs: false,
+	skipDuplicateMapOutputs: false) ~> flattenobservations
+flattenobservations derive(obs_date_clean = toDate(obs_date, 'yyyy-MM-dd'),
+		obs_value_clean = iif(obs_value == '.', toDecimal('', 18, 4), toDecimal(obs_value, 18, 4)),
+		series_id_param = $series_id) ~> cleanedJolts
+cleanedJolts, dimDateMonthly lookup(obs_date_clean == full_date,
+	multiple: false,
+	pickup: 'any',
+	broadcast: 'auto')~> lookupDate
+srcDimDate filter(is_annual==false()) ~> dimDateMonthly
+filterValidDates, srcDimMetric lookup(series_id_param == metric_code,
+	multiple: false,
+	pickup: 'any',
+	broadcast: 'auto')~> lookupMetric
+lookupMetric derive(sector_key_val = 1) ~> addSectorKey
+addMetaData select(mapColumn(
+		value = obs_value_clean,
+		date_key,
+		metric_key,
+		sector_key = sector_key_val,
+		source = source_val,
+		load_timestamp = load_timestamp_val
+	),
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true) ~> finalSelect
+addSectorKey derive(source_val = 'FRED_JOLTS',
+		load_timestamp_val = currentTimestamp()) ~> addMetaData
+finalSelect alterRow(upsertIf(true())) ~> alterRowUpsert
+lookupDate filter(!isNull(date_key)) ~> filterValidDates
+alterRowUpsert sink(allowSchemaDrift: true,
+	validateSchema: false,
+	input(
+		fact_key as long,
+		date_key as integer,
+		sector_key as integer,
+		metric_key as integer,
+		value as decimal(18,4),
+		pct_change_1m as decimal(8,4),
+		pct_change_12m as decimal(8,4),
+		source as string,
+		load_timestamp as timestamp
+	),
+	deletable:false,
+	insertable:true,
+	updateable:false,
+	upsertable:true,
+	keys:['date_key','sector_key','metric_key'],
+	format: 'table',
+	skipDuplicateMapInputs: true,
+	skipDuplicateMapOutputs: true) ~> sinkPg

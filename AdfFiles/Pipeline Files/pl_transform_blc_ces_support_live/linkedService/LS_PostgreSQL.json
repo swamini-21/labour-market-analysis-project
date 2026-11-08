@@ -1,0 +1,25 @@
+{
+    "name": "LS_PostgreSQL",
+    "type": "Microsoft.DataFactory/factories/linkedservices",
+    "properties": {
+        "annotations": [],
+        "type": "AzurePostgreSql",
+        "version": "2.0",
+        "typeProperties": {
+            "server": "pg-labour-analytics.postgres.database.azure.com",
+            "port": "5432",
+            "database": "labour-analytics",
+            "sslMode": 3,
+            "username": "labadmin",
+            "password": {
+                "type": "AzureKeyVaultSecret",
+                "store": {
+                    "referenceName": "LS_KeyVault",
+                    "type": "LinkedServiceReference"
+                },
+                "secretName": "pg-admin-password"
+            },
+            "authenticationType": "Basic"
+        }
+    }
+}

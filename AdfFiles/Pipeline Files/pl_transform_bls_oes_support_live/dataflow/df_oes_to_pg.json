@@ -1,0 +1,325 @@
+{
+    "name": "df_oes_to_pg",
+    "properties": {
+        "type": "MappingDataFlow",
+        "typeProperties": {
+            "sources": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_blob_oes_ssource",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcOES"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_dim_date",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimDate"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "dg_pg_dim_occupation",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimOccupation"
+                },
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_dim_metric",
+                        "type": "DatasetReference"
+                    },
+                    "name": "srcDimMetric"
+                }
+            ],
+            "sinks": [
+                {
+                    "dataset": {
+                        "referenceName": "ds_pg_fact_occ_wages",
+                        "type": "DatasetReference"
+                    },
+                    "name": "sinkPostgres"
+                }
+            ],
+            "transformations": [
+                {
+                    "name": "dimDateAnnual"
+                },
+                {
+                    "name": "filterValidRows"
+                },
+                {
+                    "name": "selectCols"
+                },
+                {
+                    "name": "addYear"
+                },
+                {
+                    "name": "lookupOcc"
+                },
+                {
+                    "name": "filterValidOcc"
+                },
+                {
+                    "name": "lookupDate"
+                },
+                {
+                    "name": "filterValidDates"
+                },
+                {
+                    "name": "deduplicateCols"
+                },
+                {
+                    "name": "mapMetricCodes"
+                },
+                {
+                    "name": "lookupMetric"
+                },
+                {
+                    "name": "addMetaData"
+                },
+                {
+                    "name": "finalSelect"
+                },
+                {
+                    "name": "alterRowUpsert"
+                },
+                {
+                    "name": "normalizeSchema"
+                },
+                {
+                    "name": "normalizeDataCols"
+                },
+                {
+                    "name": "castMetricsFinal"
+                },
+                {
+                    "name": "deriveEmp"
+                },
+                {
+                    "name": "deriveHMean"
+                },
+                {
+                    "name": "deriveAMean"
+                },
+                {
+                    "name": "selectAMean"
+                },
+                {
+                    "name": "selectHMean"
+                },
+                {
+                    "name": "selectEmp"
+                },
+                {
+                    "name": "unionMetrics"
+                }
+            ],
+            "scriptLines": [
+                "parameters{",
+                "     reference_year as integer (2025)",
+                "}",
+                "source(output(",
+                "          AREA as short,",
+                "          AREA_TITLE as string,",
+                "          AREA_TYPE as boolean,",
+                "          PRIM_STATE as string,",
+                "          NAICS as short,",
+                "          NAICS_TITLE as string,",
+                "          I_GROUP as string,",
+                "          OWN_CODE as short,",
+                "          OCC_CODE as string,",
+                "          OCC_TITLE as string,",
+                "          O_GROUP as string,",
+                "          TOT_EMP as decimal(10,0),",
+                "          EMP_PRSE as double,",
+                "          JOBS_1000 as string,",
+                "          LOC_QUOTIENT as string,",
+                "          PCT_TOTAL as string,",
+                "          PCT_RPT as string,",
+                "          H_MEAN as decimal(10,0),",
+                "          A_MEAN as decimal(10,0),",
+                "          MEAN_PRSE as double,",
+                "          H_PCT10 as float,",
+                "          H_PCT25 as float,",
+                "          H_MEDIAN as float,",
+                "          H_PCT75 as float,",
+                "          H_PCT90 as float,",
+                "          A_PCT10 as float,",
+                "          A_PCT25 as float,",
+                "          A_MEDIAN as float,",
+                "          A_PCT75 as float,",
+                "          A_PCT90 as float,",
+                "          ANNUAL as boolean,",
+                "          HOURLY as boolean",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     ignoreNoFilesFound: false) ~> srcOES",
+                "source(output(",
+                "          date_key as integer,",
+                "          full_date as date,",
+                "          year as short,",
+                "          month as short,",
+                "          month_name as string,",
+                "          quarter as short,",
+                "          is_annual as boolean",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimDate",
+                "source(output(",
+                "          occ_key as integer,",
+                "          occ_code as string,",
+                "          occ_title as string,",
+                "          occ_group as string,",
+                "          occ_category as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimOccupation",
+                "source(output(",
+                "          metric_key as integer,",
+                "          metric_code as string,",
+                "          metric_name as string,",
+                "          metric_category as string,",
+                "          unit_of_measure as string,",
+                "          source as string",
+                "     ),",
+                "     allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     isolationLevel: 'READ_UNCOMMITTED',",
+                "     format: 'table') ~> srcDimMetric",
+                "srcDimDate filter(is_annual == true()) ~> dimDateAnnual",
+                "normalizeSchema filter((occ_group_norm == 'major' || occ_group_norm == 'total') && industry_norm == 'cross-industry' && area_norm == '99') ~> filterValidRows",
+                "normalizeDataCols select(mapColumn(",
+                "          occ_code = occ_code_norm,",
+                "          tot_emp = total_emp_final,",
+                "          h_mean = h_mean_final,",
+                "          a_mean = a_mean_final",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selectCols",
+                "selectCols derive(obs_date = toDate(concat(toString($reference_year), '-01-01'), 'yyyy-MM-dd'),",
+                "          occ_code = trim(occ_code)) ~> addYear",
+                "addYear, srcDimOccupation lookup(addYear@occ_code == srcDimOccupation@occ_code,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> lookupOcc",
+                "deduplicateCols filter(!isNull(occ_key)) ~> filterValidOcc",
+                "filterValidOcc, dimDateAnnual lookup(obs_date == full_date,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> lookupDate",
+                "lookupDate filter(!isNull(date_key)) ~> filterValidDates",
+                "lookupOcc select(mapColumn(",
+                "          tot_emp,",
+                "          h_mean,",
+                "          a_mean,",
+                "          obs_date,",
+                "          occ_key,",
+                "          occ_title,",
+                "          occ_group,",
+                "          occ_category,",
+                "          occ_code = addYear@occ_code",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> deduplicateCols",
+                "unionMetrics derive(metric_code = iif(metric_code == 'tot_emp', 'OES_EMP', iif(metric_code == 'h_mean', 'OES_MHW', 'OES_MAW'))) ~> mapMetricCodes",
+                "mapMetricCodes, srcDimMetric lookup(mapMetricCodes@metric_code == srcDimMetric@metric_code,",
+                "     multiple: false,",
+                "     pickup: 'any',",
+                "     broadcast: 'auto')~> lookupMetric",
+                "lookupMetric derive(source = 'BLS_OES',",
+                "          load_timestamp = currentTimestamp()) ~> addMetaData",
+                "addMetaData select(mapColumn(",
+                "          date_key,",
+                "          occ_key,",
+                "          metric_key,",
+                "          value = metric_value,",
+                "          source,",
+                "          load_timestamp",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> finalSelect",
+                "finalSelect alterRow(upsertIf(true())) ~> alterRowUpsert",
+                "srcOES derive(occ_group_norm = iif(!isNull(toString(byName('OCC_GROUP'))), toString(byName('OCC_GROUP')), iif(!isNull(toString(byName('O_GROUP'))), toString(byName('O_GROUP')), toString(byName('o_group')))),",
+                "          industry_norm = iif(!isNull(toString(byName('I_GROUP'))), toString(byName('I_GROUP')), iif(!isNull(toString(byName('i_group'))), toString(byName('i_group')), 'cross-industry')),",
+                "          area_norm = iif(!isNull(toString(byName('AREA'))), toString(byName('AREA')), iif(!isNull(toString(byName('area'))), toString(byName('area')), '99')),",
+                "          occ_code_norm = iif(!isNull(toString(byName('OCC_CODE'))), toString(byName('OCC_CODE')), toString(byName('occ_code'))),",
+                "          tot_emp_norm = iif(!isNull(toString(byName('TOT_EMP'))), toString(byName('TOT_EMP')), toString(byName('tot_emp'))),",
+                "          h_mean_norm = iif(!isNull(toString(byName('H_MEAN'))), toString(byName('H_MEAN')), toString(byName('h_mean'))),",
+                "          a_mean_norm = iif(!isNull(toString(byName('A_MEAN'))), toString(byName('A_MEAN')), toString(byName('a_mean')))) ~> normalizeSchema",
+                "filterValidRows derive(total_emp_final = toDecimal(tot_emp_norm, 18, 4),",
+                "          h_mean_final = toDecimal(h_mean_norm, 18, 4),",
+                "          a_mean_final = toDecimal(a_mean_norm, 18, 4)) ~> normalizeDataCols",
+                "filterValidDates derive(tot_emp = toDecimal(tot_emp, 18, 4),",
+                "          a_mean = toDecimal(a_mean, 18, 4),",
+                "          h_mean = toDecimal(h_mean, 18, 4)) ~> castMetricsFinal",
+                "castMetricsFinal derive(metric_code = 'tot_emp',",
+                "          metric_vale = toDecimal(tot_emp, 18, 4)) ~> deriveEmp",
+                "castMetricsFinal derive(metric_code = 'h_mean',",
+                "          metric_value = toDecimal(h_mean, 18, 4)) ~> deriveHMean",
+                "castMetricsFinal derive(metric_code = 'a_mean',",
+                "          metric_value = toDecimal(a_mean, 18, 4)) ~> deriveAMean",
+                "deriveAMean select(mapColumn(",
+                "          occ_key,",
+                "          date_key,",
+                "          metric_code,",
+                "          metric_value",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selectAMean",
+                "deriveHMean select(mapColumn(",
+                "          occ_key,",
+                "          date_key,",
+                "          metric_code,",
+                "          metric_value",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selectHMean",
+                "deriveEmp select(mapColumn(",
+                "          occ_key,",
+                "          date_key,",
+                "          metric_code,",
+                "          metric_value = metric_vale",
+                "     ),",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true) ~> selectEmp",
+                "selectAMean, selectHMean, selectEmp union(byName: true)~> unionMetrics",
+                "alterRowUpsert sink(allowSchemaDrift: true,",
+                "     validateSchema: false,",
+                "     input(",
+                "          fact_key as long,",
+                "          date_key as integer,",
+                "          occ_key as integer,",
+                "          metric_key as integer,",
+                "          value as decimal(18,4),",
+                "          yoy_change as decimal(18,4),",
+                "          yoy_pct_change as decimal(8,4),",
+                "          source as string,",
+                "          load_timestamp as timestamp",
+                "     ),",
+                "     deletable:false,",
+                "     insertable:true,",
+                "     updateable:false,",
+                "     upsertable:true,",
+                "     keys:['date_key','occ_key','metric_key'],",
+                "     format: 'table',",
+                "     skipDuplicateMapInputs: true,",
+                "     skipDuplicateMapOutputs: true,",
+                "     mapColumn(",
+                "          date_key,",
+                "          occ_key,",
+                "          metric_key,",
+                "          value,",
+                "          source,",
+                "          load_timestamp",
+                "     )) ~> sinkPostgres"
+            ]
+        }
+    }
+}

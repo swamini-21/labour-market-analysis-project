@@ -1,0 +1,54 @@
+{
+    "name": "ds_pg_dim_sector",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_PostgreSQL",
+            "type": "LinkedServiceReference"
+        },
+        "annotations": [],
+        "type": "AzurePostgreSqlTable",
+        "schema": [
+            {
+                "name": "sector_key",
+                "type": "integer",
+                "precision": 0,
+                "scale": 0
+            },
+            {
+                "name": "sector_code",
+                "type": "character varying",
+                "precision": 0,
+                "scale": 0
+            },
+            {
+                "name": "sector_name",
+                "type": "character varying",
+                "precision": 0,
+                "scale": 0
+            },
+            {
+                "name": "supersector_code",
+                "type": "character varying",
+                "precision": 0,
+                "scale": 0
+            },
+            {
+                "name": "supersector_name",
+                "type": "character varying",
+                "precision": 0,
+                "scale": 0
+            },
+            {
+                "name": "is_total",
+                "type": "boolean",
+                "precision": 0,
+                "scale": 0
+            }
+        ],
+        "typeProperties": {
+            "schema": "analytics",
+            "table": "dim_sector"
+        }
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}

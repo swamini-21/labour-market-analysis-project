@@ -1,0 +1,35 @@
+{
+    "name": "ds_http_fred_jolts",
+    "properties": {
+        "linkedServiceName": {
+            "referenceName": "LS_HTTP_FRED",
+            "type": "LinkedServiceReference"
+        },
+        "parameters": {
+            "series_id": {
+                "type": "string",
+                "defaultValue": "JTSJOL"
+            },
+            "observation_start": {
+                "type": "string",
+                "defaultValue": "2015-01-01"
+            },
+            "api_key": {
+                "type": "string"
+            }
+        },
+        "annotations": [],
+        "type": "Json",
+        "typeProperties": {
+            "location": {
+                "type": "HttpServerLocation",
+                "relativeUrl": {
+                    "value": "@concat(\n  '/fred/series/observations',\n  '?series_id=', dataset().series_id,\n  '&observation_start=', dataset().observation_start,\n  '&file_type=json',\n  '&api_key=', dataset().api_key\n)",
+                    "type": "Expression"
+                }
+            }
+        },
+        "schema": {}
+    },
+    "type": "Microsoft.DataFactory/factories/datasets"
+}
